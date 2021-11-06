@@ -1,6 +1,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/shm.h>
+#include <sys/ipc.h>
+#include <sys/wait.h>
+
 
 int** matrix1, **matrix2;
 int* rows, *columns;
@@ -27,7 +33,11 @@ int** load_txt_Matrix(char* fileName, int index){
 
     return matrix;
 }
+
+
 int main(int argc, char* argv[]){
+
+    int valor = shmget(IPC_PRIVATE, sizeof(int**))
     
     rows = (int*)malloc((2) * sizeof(int));
     columns = (int*)malloc((2) * sizeof(int));
