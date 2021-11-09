@@ -34,11 +34,59 @@ int** load_txt_Matrix(char* fileName, int index){
     return matrix;
 }
 
+int rowXcolumn(int row, int column){
+    int soma = 0;
+    for(size_t i = 0; i < rows[0]; i++)
+    {
+        soma += matrix1[row][i] * matrix2[i][column];
+
+    }
+    printf("C%i%i = %i\n",row, column, soma);
+    return soma;
+}
+
+void save_txt_arrayFile(int* matrix, char* fileName, int begin_row, int end_row, double time){
+    
+    FILE *fp = fopen(fileName, "wt");
+    fprintf(fp,"%i %i\n",rows[0], columns[1]);
+    int count = 0;
+
+    for (size_t i = begin_row; i < end_row; i++){
+        for (size_t y = 0; y < columns[1]; y++)
+        {
+            fprintf(fp, "C%li %li = %i\n", i, y , matrix[count]);
+            count+= 1;
+        }
+    }    
+    fprintf(fp, "%f", time);
+    fclose(fp);
+}
+
+void prod_matriz(int n_processo, int x, int index){
+    printf("Entrou aqui"); 
+    int* array = (int*) malloc( n_processo * sizeof(int));
+    int count = 0;
+    clock_t t;
+    t = clock();
+    for (size_t i = x; i < x * index; i++)
+    {
+        for (size_t j = 0; j < columns[1]; j++)
+        {
+            array[count] = rowXcolumn(i, j);
+            count++;
+        }
+        
+    }
+    t = clock() - t;
+    double time_taken = ((double)t)/CLOCKS_PER_SEC;
+    char num = '0' + index;
+    char* fileName = {{"p1.txt"},{"p2.txt"},{"p3.txt"},{"p4.txt"},{"p5.txt"},{"p6.txt"},{"p7.txt"},{"p8.txt"}};
+    save_txt_arrayFile(array, fileName[index], x, (x*index), time_taken);
+    printf("tempo [%f]\n", time_taken);
+}
 
 int main(int argc, char* argv[]){
-
-    int valor = shmget(IPC_PRIVATE, sizeof(int**))
-    
+ 
     rows = (int*)malloc((2) * sizeof(int));
     columns = (int*)malloc((2) * sizeof(int));
 
@@ -48,29 +96,36 @@ int main(int argc, char* argv[]){
     fileName = argv[2];
     matrix2 = load_txt_Matrix(fileName, 1);
 
-    int num_Process = atoi(argv[3]);
-    printf("Number of process  : %i", num_Process);
+    int process = atoi(argv[3]);
+    printf("Number of process  : %i\n", process);
 
+
+    int num_Process = (rows[0]*columns[1])/process;
     pid_t pid;
-    pid = fork();
+    int count = 0;
 
-    if(pid < 0) { /*ocorrência de erro*/
-        fprintf(stderr, "Ciração Falhou");
-        exit(-1);
-    }
-    else if (pid == 0) { /*processo filho*/
-        printf("Executando o filho (PID=%d), cujo pai tem PID=%d/n", getpid(), getppid());
-    }
-    else {  /*processo pai*/
-        printf("Processo Pai finalizou");
-    }
+    for (size_t i = 0; i < num_Process; i++)
+    {
+       pid = fork();
 
-    clock_t t;
-    t = clock();
+        if(pid < 0) { 
+            fprintf(stderr, "Criação Falhou\n");
+            exit(-1);
+        }
+        else if (pid == 0) { 
+            printf("processo numero %ld ", i);
+            printf("Executando o filho (PID=%d), cujo pai tem PID=%d\n", getpid(), getppid());
+            prod_matriz( process ,(process / num_Process) * i , i + 1);
+            exit(0);
+        }
+    }
     
-    //prod_matrix();
-    t = clock() - t;
-    double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds
+     for (size_t i = 0; i < num_Process; i++)
+    {
+        wait(NULL);
+    }
+    
 
+    printf("Processo finalizou\n");
     return 0;
 }

@@ -27,6 +27,7 @@ int** load_txt_Matrix(char* fileName, int index){
 
     return matrix;
 }
+
 void save_txt_MatrixFile(int** matrix, char* fileName, int rows, int columns, double time){
     
     FILE *fp = fopen(fileName, "wt");
@@ -103,6 +104,7 @@ int main(int argc, char* argv[]){
     prod_matrix();
     t = clock() - t;
     double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds
+    printf("tempo [%f]\n", time_taken);
 
     save_txt_MatrixFile(matrix[2],"m3.txt", rows[2], columns[2], time_taken);
     return 0;

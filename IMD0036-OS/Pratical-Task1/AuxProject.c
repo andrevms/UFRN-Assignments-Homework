@@ -63,7 +63,7 @@ int main(int argc, char* argv[]){
         return -1;
     }
     
-    for (int i = 1, count = 0; i < argc; i+= 2, count++)
+    for (int i = 1, count = 1; i < argc; i+= 2, count++)
     {
         int row = atoi(argv[i]);
         int column = atoi(argv[i+1]);
