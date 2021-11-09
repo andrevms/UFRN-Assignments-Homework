@@ -3,54 +3,32 @@
 #include <string.h>
 #include <time.h>
 
-#define MAX_RAND 1000;
+#define MAX_RAND 10;
 
 
-int** create_Random_Matrix(int rows, int columns){
+int* create_Random_array(int rows, int columns){
+    int num_elements = rows * columns;
+    int* array = (int*) malloc (num_elements * sizeof(int*));
     
-    int** matrix = (int**)malloc(rows * sizeof(int*));
-
-    for (size_t i = 0; i < rows; i++){
-        matrix[i] = (int*) malloc (columns * sizeof(int));
-        for (size_t y = 0; y < columns; y++)
-            matrix[i][y] = rand() %MAX_RAND;
+    for (size_t i = 0; i < num_elements; i++){
+            array[i] = rand() %MAX_RAND;
     }
-
-    return matrix;
+    return array;
 }
 
-void save_binary_MatrixFile(int** matrix , char* fileName, int rows, int columns){
-    FILE *fp = fopen(fileName, "w");
-    int* pt = (int*)malloc(2 * sizeof(int));
-    pt[0] = rows;
-    pt[1] = columns;
-
-    fwrite(pt, sizeof(int), 2, fp);
-    for (size_t i = 0; i < rows; i++)
-        fwrite(matrix[i], sizeof(int), columns, fp );
-    fclose(fp);
-}
-
-void save_txt_MatrixFile(int** matrix, char* fileName, int rows, int columns){
+void save_txt_File(int* matrix, char* fileName, int rows, int columns){
     
     FILE *fp = fopen(fileName, "wt");
-    fprintf(fp,"%i ",rows);
-    fprintf(fp,"%i\n",columns);
+    fprintf(fp,"%i %i\n",rows, columns);
 
-    for (size_t i = 0; i < rows; i++){
-        for (size_t y = 0; y < columns; y++)
+    int count = 0;
+    for (int x = 0; x < rows; x++){
+        for (int y = 0; y < columns; y++)
         {
-            fprintf(fp, "%i", matrix[i][y]);
-
-            if(y == columns-1){
-                fprintf(fp, "\n");
-            }
-            else{
-                fprintf(fp, " ");
-            }
+            fprintf(fp, "C%i %i %i \n", x, y, matrix[count]);
+            count++;
         }
-    }
-        
+    }  
     fclose(fp);
 }
 
@@ -63,30 +41,19 @@ int main(int argc, char* argv[]){
         return -1;
     }
     
-    for (int i = 1, count = 1; i < argc; i+= 2, count++)
-    {
-        int row = atoi(argv[i]);
-        int column = atoi(argv[i+1]);
-        int** m = create_Random_Matrix(row, column);
-        char num = '0' + count;
-        
-        /*
-        char* fileName = (char*)malloc (2* sizeof(char));
-        fileName[0]= 'm';
-        fileName[1]= num;
-        save_binary_MatrixFile(m, fileName, row, column);
-        */
-       
-        char* fileName = (char*)malloc (5* sizeof(char));
-        fileName[0]= 'm';
-        fileName[1]= num;
-        fileName[2]= '.';
-        fileName[3]= 't';
-        fileName[4]= 'x';
-        fileName[5]= 't';
-        save_txt_MatrixFile(m, fileName, row, column);
-    }
+   
+    int row = atoi(argv[1]);
+    int column = atoi(argv[2]);
+    int* m = create_Random_array(row, column);
+    save_txt_File(m, "m1.txt", row, column);
+    free(m);
     
+    row = atoi(argv[3]);
+    column = atoi(argv[4]);
+    m = create_Random_array(row, column);
+    save_txt_File(m, "m2.txt", row, column);
+    free(m);
+
     return 0;
 }
 
