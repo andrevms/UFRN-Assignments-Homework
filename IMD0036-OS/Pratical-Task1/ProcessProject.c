@@ -10,7 +10,7 @@
 
 int*** matrix;
 int* rows, *columns;
-char* fileName; 
+char** fileName; 
 
 
 int** load_txt_Matrix(char* fileName, int index){
@@ -37,15 +37,6 @@ int** load_txt_Matrix(char* fileName, int index){
     return m;
 }
 
-int rowXcolumn(int row, int column){
-    int soma = 0;
-    for(size_t i = 0; i < rows[0]; i++)
-    {
-        soma += matrix[0][row][i] * matrix[1][i][column];
-    }
-    return soma;
-}
-
 void save_txt_File( char* fileName, double time, int begin_row, int end_row, int begin_column, int end_column){
     
     FILE *fp = fopen(fileName, "wt");
@@ -62,23 +53,46 @@ void save_txt_File( char* fileName, double time, int begin_row, int end_row, int
     fclose(fp);
 }
 
-void prod_matrix(int index, char* fileName){
-    //int begin_row, int end_row, int begin_column, int end_column){
-   
-
-    //save_txt_file()
-    /*
+int prod_matrix(int*** matrix, int* rows, int* columns, char* fileName, int index, int total_rows){
+    int begin_row = index * total_rows;
+    int end_row = (index+1)* total_rows;
+    int begin_column = 0;
+    int end_column = columns[1];    
+    int soma = 0;
     int count = 0;
+    printf("%s\n",fileName);
+    clock_t t;
+    t = clock();
     for (size_t i = begin_row; i < end_row; i++)
     {
         for (size_t y = begin_column; y < end_column; y++)
         {
-            matrix[2][i][y] = rowXcolumn(i, y);
+            soma = 0;
+            for(size_t j = 0; j < rows[0]; j++)
+            {
+                soma += matrix[0][i][j] * matrix[1][j][y];
+            }
+            matrix[2][i][y] = soma;
         }
     }
-    */
+    t = clock() - t;
+    double time_taken = ((double)t)/CLOCKS_PER_SEC;
+    printf("tempo [%f]\n", time_taken);
+    
+    FILE *fp = fopen(fileName, "wt");
+    fprintf(fp,"%i %i\n", rows[0], columns[1]);
 
+    for (int x = begin_row; x < end_row; x++){
+        for (int y = begin_column; y < end_column; y++)
+        {
+            fprintf(fp, "C%i %i %i \n", x, y, matrix[2][x][y]);
+        }
+    }  
 
+    fprintf(fp, "%f", time_taken);
+    fclose(fp);
+
+   return 1;
 }
 
 int main(int argc, char* argv[]){
@@ -93,17 +107,30 @@ int main(int argc, char* argv[]){
         matrix[i-1] = load_txt_Matrix(argv[i], i-1);
     }
 
+    matrix[2] = (int**) malloc (rows[0] * sizeof(int*));
+    for (size_t i = 0; i < rows[0]; i++)
+    {
+        matrix[2][i] = (int*) malloc (columns[1]*sizeof(int));
+    }
+
+
     int process = atoi(argv[3]);
     printf("Number of process  : %i\n", process);
 
-   
+    fileName = (char**) malloc (process * sizeof(char*));
+    for (size_t i = 0; i < process; i++)
+    {
+        fileName[i] = (char*) malloc (100 * sizeof(char*));
+        sprintf(fileName[i], "Teste-%02ld.txt", i);
+        //printf("%s\n",fileName[i]);
+    }
+    
+
     int count = 0;
-    char a;
-    fileName = (char*) malloc (5*sizeof(char));
     int* pid;
     pid = (int*) malloc (process * sizeof(int));
 
-    for (size_t i = 0; i < process; i++)
+    for (int i = 0; i < process; i++)
     {
        pid[i] = fork();
 
@@ -112,22 +139,16 @@ int main(int argc, char* argv[]){
             exit(-1);
         }
         else if (pid[i] == 0) { // ajeitar aqui prod_matrix
-            printf("processo numero %ld ", i);
+            printf("processo numero %d ", i);
             printf("Executando o filho (PID=%d), cujo pai tem PID=%d\n", getpid(), getppid());
-            a  = '0'+ i;
-            fileName = "r1.txt";
-            fileName[1] = a;
-
-            printf("ProdM Number of process  : %li\n", i);
-            printf("%s\n",fileName);
-            //prod_matrix(i, fileName);
-                // process ,(process / num_Process) * i , i + 1);
+            prod_matrix(matrix, rows, columns, fileName[i], i, (rows[0]/process));
             exit(0);
         }
         else{
            wait(NULL);
         }
     }
+    
     
     printf("Processo Pai finalizou\n");
     return 0;

@@ -16,7 +16,7 @@ int** load_txt_Matrix(char* fileName, int index){
     int** m = (int**) malloc( rows[index] * sizeof(int*));    
 
     for (int i = 0; i < rows[index]; i++){
-        m[i] = (int*) malloc( columns[index] * sizeof(int*));  
+        m[i] = (int*) malloc( columns[index] * sizeof(int));  
         for (int y = 0; y < columns[index]; y++)
         {
             fscanf(fp,"C%i %i %i\n", &aux1, &aux2, &m[i][y]);
