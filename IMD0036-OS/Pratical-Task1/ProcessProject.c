@@ -12,7 +12,6 @@ int*** matrix;
 int* rows, *columns;
 char** fileName; 
 
-
 int** load_txt_Matrix(char* fileName, int index){
     FILE *fp = fopen(fileName, "r");
     fscanf(fp,"%i %i\n", &rows[index], &columns[index]);
@@ -37,58 +36,47 @@ int** load_txt_Matrix(char* fileName, int index){
     return m;
 }
 
-void save_txt_File( char* fileName, double time, int begin_row, int end_row, int begin_column, int end_column){
+int prod_matrix(int*** matrix, int* rows, int* columns, char* fileName, int index, int num_elements){
     
-    FILE *fp = fopen(fileName, "wt");
-    fprintf(fp,"%i %i\n", rows[2], columns[2]);
+    int elements = num_elements * index;
+    int end_elements = elements + num_elements;
+    int max = rows[0]* columns[1];
+    
+    if (end_elements > max)
+    {
+        end_elements -= (end_elements - max);
+    }
+    
+    printf("%s %i %i\n", fileName, elements, end_elements);
 
-    for (int x = 0, w = begin_row; x < (end_row - begin_row), w < end_row; x++, w++){
-        for (int y = 0, z = begin_column; y < columns[2], z = end_column; y++, z++)
-        {
-            fprintf(fp, "C%i %i %i \n", w, z, matrix[2][x][y]);
-        }
-    }  
-
-    fprintf(fp, "%f", time);
-    fclose(fp);
-}
-
-int prod_matrix(int*** matrix, int* rows, int* columns, char* fileName, int index, int total_rows){
-    int begin_row = index * total_rows;
-    int end_row = (index+1)* total_rows;
-    int begin_column = 0;
-    int end_column = columns[1];    
-    int soma = 0;
-    int count = 0;
-    printf("%s\n",fileName);
     clock_t t;
     t = clock();
-    for (size_t i = begin_row; i < end_row; i++)
+    for (size_t i = elements; i < end_elements; i++)
     {
-        for (size_t y = begin_column; y < end_column; y++)
+        int x = i/rows[0];
+        int y = i%columns[1];
+        int soma = 0;
+        for (size_t j = 0; j < rows[0]; j++)
         {
-            soma = 0;
-            for(size_t j = 0; j < rows[0]; j++)
-            {
-                soma += matrix[0][i][j] * matrix[1][j][y];
-            }
-            matrix[2][i][y] = soma;
+            soma+= matrix[0][x][j] * matrix[1][j][y];
         }
+        matrix[2][x][y] = soma;
     }
     t = clock() - t;
+
     double time_taken = ((double)t)/CLOCKS_PER_SEC;
     printf("tempo [%f]\n", time_taken);
-    
+
     FILE *fp = fopen(fileName, "wt");
     fprintf(fp,"%i %i\n", rows[0], columns[1]);
 
-    for (int x = begin_row; x < end_row; x++){
-        for (int y = begin_column; y < end_column; y++)
+    for (int i = elements; i < end_elements; i++)
         {
+            int x = i/rows[0];
+            int y = i%columns[1];
             fprintf(fp, "C%i %i %i \n", x, y, matrix[2][x][y]);
         }
-    }  
-
+        
     fprintf(fp, "%f", time_taken);
     fclose(fp);
 
@@ -96,7 +84,6 @@ int prod_matrix(int*** matrix, int* rows, int* columns, char* fileName, int inde
 }
 
 int main(int argc, char* argv[]){
-    
     
     matrix = (int***) malloc ((argc) * sizeof(int**));
     rows = (int*) malloc ((argc) * sizeof(int));
@@ -113,8 +100,13 @@ int main(int argc, char* argv[]){
         matrix[2][i] = (int*) malloc (columns[1]*sizeof(int));
     }
 
+    int num_elements = atoi(argv[3]);
 
-    int process = atoi(argv[3]);
+    int process = (rows[0] * columns[1])/num_elements;
+    if((rows[0] * columns[1])%num_elements != 0){
+        process++;
+    }
+
     printf("Number of process  : %i\n", process);
 
     fileName = (char**) malloc (process * sizeof(char*));
@@ -125,8 +117,6 @@ int main(int argc, char* argv[]){
         //printf("%s\n",fileName[i]);
     }
     
-
-    int count = 0;
     int* pid;
     pid = (int*) malloc (process * sizeof(int));
 
@@ -141,15 +131,13 @@ int main(int argc, char* argv[]){
         else if (pid[i] == 0) { // ajeitar aqui prod_matrix
             printf("processo numero %d ", i);
             printf("Executando o filho (PID=%d), cujo pai tem PID=%d\n", getpid(), getppid());
-            prod_matrix(matrix, rows, columns, fileName[i], i, (rows[0]/process));
+            prod_matrix(matrix, rows, columns, fileName[i], i, num_elements);         
             exit(0);
         }
         else{
            wait(NULL);
         }
     }
-    
-    
     printf("Processo Pai finalizou\n");
     return 0;
 }
