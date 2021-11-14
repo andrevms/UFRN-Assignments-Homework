@@ -47,7 +47,7 @@ int prod_matrix(int*** matrix, int* rows, int* columns, char* fileName, int inde
         end_elements -= (end_elements - max);
     }
     
-    printf("%s %i %i\n", fileName, elements, end_elements);
+    //printf("%s %i %i\n", fileName, elements, end_elements);
 
     clock_t t;
     t = clock();
@@ -113,7 +113,7 @@ int main(int argc, char* argv[]){
     for (size_t i = 0; i < process; i++)
     {
         fileName[i] = (char*) malloc (100 * sizeof(char*));
-        sprintf(fileName[i], "Teste-%02ld.txt", i);
+        sprintf(fileName[i], "Teste-Process%02ld.txt", i);
         //printf("%s\n",fileName[i]);
     }
     
@@ -129,8 +129,8 @@ int main(int argc, char* argv[]){
             exit(-1);
         }
         else if (pid[i] == 0) { // ajeitar aqui prod_matrix
-            printf("processo numero %d ", i);
-            printf("Executando o filho (PID=%d), cujo pai tem PID=%d\n", getpid(), getppid());
+            //printf("processo numero %d ", i);
+            //printf("Executando o filho (PID=%d), cujo pai tem PID=%d\n", getpid(), getppid());
             prod_matrix(matrix, rows, columns, fileName[i], i, num_elements);         
             exit(0);
         }

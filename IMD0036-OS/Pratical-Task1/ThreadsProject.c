@@ -49,15 +49,19 @@ void* prod_matrix(void *tid){
         end_elements -= (end_elements - max);
     }
 
-    printf("%s %i %i\n", fileName[(int) (size_t) tid], elements, end_elements);
+    //printf("%s %i %i\n", fileName[(int) (size_t) tid], elements, end_elements);
 
+
+    int x;
+    int y;
+    int soma;
     clock_t t;
     t = clock();
     for (size_t i = elements; i < end_elements; i++)
     {
-        int x = i/rows[0];
-        int y = i%columns[1];
-        int soma = 0;
+        x = i/rows[0];
+        y = i%columns[1];
+        soma = 0;
         for (size_t j = 0; j < rows[0]; j++)
         {
             soma+= matrix[0][x][j] * matrix[1][j][y];
@@ -67,7 +71,8 @@ void* prod_matrix(void *tid){
     t = clock() - t;
 
     double time_taken = ((double)t)/CLOCKS_PER_SEC;
-    printf("tempo [%f]\n", time_taken); 
+    //printf("tempo [%f]\n", time_taken); 
+    printf("[%f]\n", time_taken); 
 
     FILE *fp = fopen(fileName[(int) (size_t) tid], "wt");
     fprintf(fp,"%i %i\n", rows[0], columns[1]);
@@ -109,7 +114,7 @@ int main(int argc, char* argv[]){
         process++;
     }
 
-    printf("Number of process  : %i\n", process);
+    //printf("Number of process  : %i\n", process);
 
     fileName = (char**) malloc (process * sizeof(char*));
     for (size_t i = 0; i < process; i++)
