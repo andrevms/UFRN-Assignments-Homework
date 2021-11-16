@@ -49,8 +49,9 @@ int prod_matrix(int*** matrix, int* rows, int* columns, char* fileName, int inde
     
     //printf("%s %i %i\n", fileName, elements, end_elements);
 
-    clock_t t;
-    t = clock();
+    struct timespec start, finish;
+    double elapsed;
+    clock_gettime(CLOCK_MONOTONIC, &start);
     for (size_t i = elements; i < end_elements; i++)
     {
         int x = i/rows[0];
@@ -62,10 +63,11 @@ int prod_matrix(int*** matrix, int* rows, int* columns, char* fileName, int inde
         }
         matrix[2][x][y] = soma;
     }
-    t = clock() - t;
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    elapsed = (finish.tv_sec - start.tv_sec);
+    elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
 
-    double time_taken = ((double)t)/CLOCKS_PER_SEC;
-    printf("tempo [%f]\n", time_taken);
+    printf("%f\n", elapsed);
 
     FILE *fp = fopen(fileName, "wt");
     fprintf(fp,"%i %i\n", rows[0], columns[1]);
@@ -77,7 +79,7 @@ int prod_matrix(int*** matrix, int* rows, int* columns, char* fileName, int inde
             fprintf(fp, "C%i %i %i \n", x, y, matrix[2][x][y]);
         }
         
-    fprintf(fp, "%f", time_taken);
+    fprintf(fp, "%f", elapsed);
     fclose(fp);
 
    return 1;
@@ -134,10 +136,13 @@ int main(int argc, char* argv[]){
             prod_matrix(matrix, rows, columns, fileName[i], i, num_elements);         
             exit(0);
         }
-        else{
-           wait(NULL);
-        }
     }
+
+    for (size_t i = 0; i < process; i++)
+    {
+        wait(NULL);
+    }
+
     printf("Processo Pai finalizou\n");
     return 0;
 }

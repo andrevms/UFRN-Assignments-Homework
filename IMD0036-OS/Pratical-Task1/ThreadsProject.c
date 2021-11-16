@@ -6,6 +6,7 @@
 #include <sys/shm.h>
 #include <sys/ipc.h>
 #include <sys/wait.h>
+#include <sys/time.h>
 #include <pthread.h>
 
 
@@ -51,12 +52,13 @@ void* prod_matrix(void *tid){
 
     //printf("%s %i %i\n", fileName[(int) (size_t) tid], elements, end_elements);
 
-
+  
     int x;
     int y;
     int soma;
-    clock_t t;
-    t = clock();
+    struct timespec start, finish;
+    double elapsed;
+    clock_gettime(CLOCK_MONOTONIC, &start);
     for (size_t i = elements; i < end_elements; i++)
     {
         x = i/rows[0];
@@ -68,11 +70,11 @@ void* prod_matrix(void *tid){
         }
         matrix[2][x][y] = soma;
     }
-    t = clock() - t;
-
-    double time_taken = ((double)t)/CLOCKS_PER_SEC;
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    elapsed = (finish.tv_sec - start.tv_sec);
+    elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
     //printf("tempo [%f]\n", time_taken); 
-    printf("[%f]\n", time_taken); 
+    printf("%f\n", elapsed); 
 
     FILE *fp = fopen(fileName[(int) (size_t) tid], "wt");
     fprintf(fp,"%i %i\n", rows[0], columns[1]);
@@ -84,7 +86,7 @@ void* prod_matrix(void *tid){
             fprintf(fp, "C%i %i %i \n", x, y, matrix[2][x][y]);
         }
         
-    fprintf(fp, "%f", time_taken);
+    fprintf(fp, "%f", elapsed);
     fclose(fp);
 
     pthread_exit(NULL);
@@ -147,8 +149,14 @@ int main(int argc, char* argv[]){
             printf("Error %d\n", status[i]);
             return 1;
         }
+        //pthread_join(thread[i], &thread_return);
+    }
+
+    for (size_t i = 0; i < process; i++)
+    {
         pthread_join(thread[i], &thread_return);
     }
+ 
 
     printf("Processo Pai finalizou\n");
     return 0;
